@@ -1,0 +1,19 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : [],
+		"files" : [],
+		"nodes" : []
+	},
+	"codemodelVersion" : 
+	{
+		"major" : 2,
+		"minor" : 11
+	},
+	"installers" : [],
+	"paths" : 
+	{
+		"build" : "pico-sdk/src/common/boot_picoboot_headers",
+		"source" : "C:/Users/vigwe/.pico-sdk/sdk/2.2.0/src/common/boot_picoboot_headers"
+	}
+}
