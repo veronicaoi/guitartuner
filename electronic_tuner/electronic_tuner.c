@@ -306,46 +306,22 @@ void demo_scroll_oversize_image() {
 }
 
 int main() {
-  gpio_init(25);
-  gpio_set_dir(25, GPIO_OUT);
-  for (int i = 0; i < 6; i++) {
-      gpio_put(25, 1);
-      sleep_ms(200);
-      gpio_put(25, 0);
-      sleep_ms(200);
-  }
-
   stdio_init_all();
-  printf("HELLO FROM PICO\n");
-
-  //Test for OLED
-    sleep_ms(3000);           // <-- add: gives you time to open the serial monitor
-      scan_i2c_bus();           // <-- add: prints found I2C addresses
-
   init_display(SDA_PIN, SCL_PIN);
+
+  int count = 0;
+  char buffer[32];
   
-  // Loop the demo reel endlessly
+
   while (1) {
-    demo_write();
-    sleep_ms(2000);
-    demo_contrast();
-    sleep_ms(750);
-    demo_invert();
-    sleep_ms(750);
-    
-    demo_pixel_drawing();
-    demo_scaling_star();
-    demo_scrolling_stars();
-    sleep_ms(750);
+    // Display fixed string
+    ssd1306_clear(&display); //clear display
 
-    demo_scroll_oversize_image();
-    sleep_ms(750);
+    sprintf(buffer, "Count: %d", count);
+    ssd1306_draw_str(&display, 5, 25, buffer, &font8x8_font);
+    ssd1306_show(&display); //show the string on display
 
-    demo_lines();
-    sleep_ms(750);
-    demo_rectangles();
-    demo_ellipses();
-    demo_fills();
-    demo_power_onoff();
+    count++;
+    sleep_ms(1000); //chill for 1 sec
   }
 }
