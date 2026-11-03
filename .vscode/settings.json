@@ -1,3 +1,6 @@
 {
-    "cmake.sourceDirectory": "C:/Users/vigwe/guitar_tuner/electronic_tuner"
+    "cmake.sourceDirectory": "C:/Users/vigwe/guitar_tuner/electronic_tuner",
+    "cmake.environment": {
+        "PICO_EXTRAS_PATH": "C:\\pico-extras"
+    }
 }

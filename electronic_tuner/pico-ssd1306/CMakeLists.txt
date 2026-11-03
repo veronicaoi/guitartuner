@@ -52,7 +52,9 @@ target_link_libraries(example
         pico_stdlib
         hardware_gpio
         hardware_i2c
+        hardware_pio
         )
+pico_generate_pio_header(electronic_tuner ${CMAKE_CURRENT_LIST_DIR}/i2s_in.pio)
 
 # Add the standard include files to the build
 target_include_directories(example PRIVATE
