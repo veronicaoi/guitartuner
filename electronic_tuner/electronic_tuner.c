@@ -44,8 +44,20 @@ void read_block(void) {
 
 int main() {
   stdio_init_all();
+
   init_display(SDA_PIN, SCL_PIN);
+  ssd1306_clear(&display);
+  ssd1306_draw_str(&display, 5, 5, "booting", &font8x8_font);
+  ssd1306_show(&display);
+
   init_mic();
+  sleep_ms(500);
+
+  char fifo[24];
+  sprintf(fifo, "fifo: %d", (int)pio_sm_get_rx_fifo_level(mic_pio, mic_sm));
+  ssd1306_draw_str(&display, 5, 20, fifo, &font8x8_font);
+  ssd1306_show(&display);
+  sleep_ms(2000);
 
   char buf[24];
   while (1) {
