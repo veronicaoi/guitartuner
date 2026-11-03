@@ -1,26 +1,34 @@
 #include <stdio.h>
-#include <math.h>
+#include <stdint.h>
 #include "pico/stdlib.h"
-#include "arm_math.h"
-#include "hardware/pio.h" // for mic
+#include "hardware/i2c.h"
+#include <hardware/pio.h>
+#include "pico-ssd1306/ssd1306.h"
+#include "pico-ssd1306/lib/fonts/font8x8.h"
 #include "i2s_in.pio.h"
 
+#define I2C_PORT i2c1
+#define SDA_PIN 18
+#define SCL_PIN 19
 
 #define MIC_SCK_PIN 26   // WS = GPIO 27
 #define MIC_SD_PIN  28
 #define SAMPLE_RATE 16000
 #define BLOCK_SIZE  1024
 
-#define SAMPLE_RATE 8000.0f
-#define FFT_SIZE 1024
-#define TEST_FREQ 440.0f
-
-float32_t input_buf[FFT_SIZE];
-float32_t output_buf[FFT_SIZE];
-
+static ssd1306_t display;
 static PIO mic_pio = pio0;
 static uint mic_sm;
 static int32_t samples[BLOCK_SIZE];
+
+void init_display(uint8_t pin_sda, uint8_t pin_scl) {
+  i2c_init(I2C_PORT, 400 * 1000);
+  gpio_set_function(pin_sda, GPIO_FUNC_I2C);
+  gpio_set_function(pin_scl, GPIO_FUNC_I2C);
+  gpio_pull_up(pin_sda);
+  gpio_pull_up(pin_scl);
+  ssd1306_init(&display, 128, 64, 0x3C, I2C_PORT, 0);
+}
 
 void init_mic(void) {
   uint offset = pio_add_program(mic_pio, &i2s_in_program);
