@@ -40,6 +40,7 @@ pico_sdk_init()
 add_executable(electronic_tuner
         electronic_tuner.c
         pico-ssd1306/ssd1306.c
+        audio_fft.c
 )
 
 pico_generate_pio_header(electronic_tuner ${CMAKE_CURRENT_LIST_DIR}/i2s_in.pio)
