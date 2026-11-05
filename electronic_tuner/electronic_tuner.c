@@ -11,7 +11,7 @@
 
 #include "audio_fft.h"
 
-int SIGNAL_THRESHOLD = 100000; //placeholder
+int SIGNAL_THRESHOLD = 1500000; //placeholder
 
 int main() {
   stdio_init_all();
@@ -31,27 +31,51 @@ int main() {
   ssd1306_show(&display);
   sleep_ms(2000);
 
-  char buf[24];
-  while (1) {
-    float freq = analyze_block();
 
-    int32_t min = samples[0], max = samples[0];
-    for (int i = 1; i < BLOCK_SIZE; i++) {
-      if (samples[i] < min) min = samples[i];
-      if (samples[i] > max) max = samples[i];
-    }
-    int32_t p2p = max - min;
+    char buf[24];
+    char note_text[8];
 
-    ssd1306_clear(&display);
-    if (p2p > SIGNAL_THRESHOLD) {
-      printf("freq %.1f Hz  p2p %ld\n", freq, (long)p2p);
-      sprintf(buf, "%.1f Hz", freq);
-    } else {
-      printf("quiet  p2p %ld\n", (long)p2p);
-      sprintf(buf, "--");
+    while (1) {
+        float frequency = analyze_block();
+
+        // measure how loud this block was (peak-to-peak of the raw samples)
+        int32_t min = samples[0];
+        int32_t max = samples[0];
+
+        for (int i = 1; i < BLOCK_SIZE; i++) {
+            if (samples[i] < min) {
+                min = samples[i];
+            }
+
+            if (samples[i] > max) {
+                max = samples[i];
+            }
+        }
+
+        int32_t p2p = max - min;
+
+        ssd1306_clear(&display);
+
+        if (p2p > SIGNAL_THRESHOLD) {
+            // loud enough! work out the note and how far off it is
+            int note = frequency_to_note(frequency);
+            float cents = cents_from_note(frequency, note);
+            note_name(note, note_text);
+
+            printf("%s  %+.0f cents  (%.1f Hz)\n", note_text, cents, frequency);
+
+            ssd1306_draw_str(&display, 5, 10, note_text, &font8x8_font);
+
+            sprintf(buf, "%+.0f cents", cents);
+            ssd1306_draw_str(&display, 5, 30, buf, &font8x8_font);
+        } 
+        else {
+            // too quiet!! don't guess a note from noise
+            printf("quiet  p2p %ld\n", (float)p2p);
+            ssd1306_draw_str(&display, 5, 10, "--", &font8x8_font);
+        }
+
+        ssd1306_show(&display);
     }
-    ssd1306_draw_str(&display, 5, 25, buf, &font8x8_font);
-    ssd1306_show(&display);
-  }
 
 }

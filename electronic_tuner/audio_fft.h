@@ -46,8 +46,13 @@ void init_mic(void);
 void read_block(void);
 void fft_init(void);
 void fft(void);
+
 float find_peak_freq(int *bin_out);
 void fft_selftest(void);
 float analyze_block(void);
 
+float note_number_exact(float frequency);
+int frequency_to_note(float frequency);
+float cents_from_note(float frequency, int note);
+void note_name(int note, char *name);
 #endif // AUDIO_FFT_H

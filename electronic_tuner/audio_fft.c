@@ -118,7 +118,16 @@ void fft(void) {
     }
 }
 
-static float mag2(int k) { return fft_re[k] * fft_re[k] + fft_im[k] * fft_im[k]; }
+float bin_strength_sq(int k) {
+    // (strength of FFT bin k)^2
+
+    float re2 = fft_re[k] * fft_re[k];
+    float im2 = fft_im[k] * fft_im[k];
+
+    float strength_squared = re2 + im2;
+
+    return strength_squared;
+}
 
 float find_peak_freq(int *bin_out) {
     // Peak frequency in Hz, parabolic-interpolated
@@ -130,7 +139,7 @@ float find_peak_freq(int *bin_out) {
     // Find the frequency bin with the maximum magnitude squared value
     for (int k = LOWEST_BIN + 1; k < loop_limit; k++) {
         
-        if (mag2(k) > mag2(peak)) {
+        if (bin_strength_sq(k) > bin_strength_sq(peak)) {
             peak = k;
         }
     }
@@ -138,9 +147,9 @@ float find_peak_freq(int *bin_out) {
     *bin_out = peak;
     
     // extract magnitudes of the peak and its immediate neighboring bins
-    float a = sqrtf(mag2(peak - 1));
-    float b = sqrtf(mag2(peak));
-    float c = sqrtf(mag2(peak + 1));
+    float a = sqrtf(bin_strength_sq(peak - 1));
+    float b = sqrtf(bin_strength_sq(peak));
+    float c = sqrtf(bin_strength_sq(peak + 1));
     
     // Calculate the denominator for the interpolation equation
     float denom = a - (2.0f * b) + c;
@@ -203,9 +212,9 @@ float analyze_block(void) {
 
     fft();
 
-    // debug - print the strength of the lowest FFT bins
+    // debug - print lowest FFT bins
     for (int k = 1; k <= 8; k++) {
-        printf("%.2f ", sqrtf(mag2(k)));
+        printf("%.2f ", sqrtf(bin_strength_sq(k)));
     }
 
     printf("\n");
@@ -216,4 +225,57 @@ float analyze_block(void) {
     float frequency = find_peak_freq(&bin);
 
     return frequency;
+}
+
+float fq_to_note(float frequency) {
+    // convert a frequency in Hz to a fractional note number 
+        // e.g. A4 = 440 Hz = note 69
+
+    float ratio = frequency / 440.0f;
+    float note = 12.0f * log2f(ratio) + 69;
+
+    return note;
+}
+
+int frequency_to_note(float frequency) {
+    // round to the nearest whole note number for a frequency
+
+    if (frequency <= 0.0f) {
+        return 0;
+    }
+
+    float exact = fq_to_note(frequency);
+    int nearest = (int)roundf(exact);
+
+    //if a note is negative..
+    if (nearest < 0) {
+        nearest = 0;
+    }
+
+    return nearest;
+}
+
+float cents_from_note(float frequency, int note) {
+    // how many cents sharp (+) or flat (-) the frequency is from the given note
+
+    if (frequency <= 0) {
+        return 0;
+    }
+
+    float exact = fq_to_note(frequency);
+    float cents = (exact - (float)note) * 100;
+
+    return cents;
+}
+
+void note_name(int note, char *name) {
+    // write the note's name and octave (for example "A4" or "C#3") into name
+    // name needs room for at least 8 characters
+
+    const char *names[12] = {"C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"};
+
+    int index = note % 12;
+    int octave = note / 12 - 1;
+
+    sprintf(name, "%s%d", names[index], octave);
 }
