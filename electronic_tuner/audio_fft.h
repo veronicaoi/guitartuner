@@ -11,6 +11,8 @@
 #include "pico-ssd1306/lib/fonts/font8x8.h"
 #include "i2s_in.pio.h"
 #include <math.h>
+#define LOWEST_BIN 4 //Ignore anything lower than this FFT bin
+
 
 // --- Pin Definitions ---
 #define I2C_PORT i2c1
@@ -46,5 +48,6 @@ void fft_init(void);
 void fft(void);
 float find_peak_freq(int *bin_out);
 void fft_selftest(void);
+float analyze_block(void);
 
 #endif // AUDIO_FFT_H

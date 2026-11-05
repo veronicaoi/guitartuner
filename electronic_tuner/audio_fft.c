@@ -123,12 +123,12 @@ static float mag2(int k) { return fft_re[k] * fft_re[k] + fft_im[k] * fft_im[k];
 float find_peak_freq(int *bin_out) {
     // Peak frequency in Hz, parabolic-interpolated
 
-    int peak = 1;
+    int peak = LOWEST_BIN;
     
     int loop_limit = FFT_SIZE / 2 - 1;
     
     // Find the frequency bin with the maximum magnitude squared value
-    for (int k = 2; k < loop_limit; k++) {
+    for (int k = LOWEST_BIN + 1; k < loop_limit; k++) {
         
         if (mag2(k) > mag2(peak)) {
             peak = k;
@@ -176,4 +176,44 @@ void fft_selftest(void) {
   }
   ssd1306_show(&display);
   sleep_ms(4000);
+}
+
+float analyze_block(void) {
+    // read one block of mic audio, run the FFT, and return the loudest frequency in Hz
+
+    read_block();
+
+    // add up all the samples to find their average (the DC offset)
+    float total = 0.0f;
+
+    for (int i = 0; i < FFT_SIZE; i++) {
+        total = total + (float)samples[i];
+    }
+
+    float mean = total / FFT_SIZE;
+
+    // load the FFT input: remove the offset, scale to about -1..1, apply the Hann window
+    for (int i = 0; i < FFT_SIZE; i++) {
+        float centered = (float)samples[i] - mean;
+        float scaled = centered / 8388608.0f; // scale based on microphone limits
+
+        fft_re[i] = scaled * hann[i];
+        fft_im[i] = 0.0f;
+    }
+
+    fft();
+
+    // debug - print the strength of the lowest FFT bins
+    for (int k = 1; k <= 8; k++) {
+        printf("%.2f ", sqrtf(mag2(k)));
+    }
+
+    printf("\n");
+    // end debug..
+
+    // find the strongest frequency in the result
+    int bin;
+    float frequency = find_peak_freq(&bin);
+
+    return frequency;
 }
